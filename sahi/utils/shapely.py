@@ -20,14 +20,19 @@ def get_shapely_box(x: int, y: int, width: int, height: int) -> Polygon:
 
 
 def get_shapely_multipolygon(coco_segmentation: List[List]) -> MultiPolygon:
-    """
-    Accepts coco style polygon coords and converts it to shapely multipolygon object
-    """
     polygon_list = []
     for coco_polygon in coco_segmentation:
         point_list = list(zip(coco_polygon[0::2], coco_polygon[1::2]))
         shapely_polygon = Polygon(point_list)
-        polygon_list.append(shapely_polygon)
+        cleaned = shapely_polygon.buffer(1)
+
+        try:
+            fixed_coords = list(cleaned.exterior.coords)
+            fixed = Polygon(fixed_coords)
+            polygon_list.append(fixed)
+        except Exception as e:
+            print(e, shapely_polygon)
+
     shapely_multipolygon = MultiPolygon(polygon_list)
 
     return shapely_multipolygon
